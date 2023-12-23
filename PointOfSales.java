@@ -11,9 +11,10 @@ import java.util.Vector;
 public class PointOfSales {
     private JFrame mainFrame;
     private ArrayList<Product> inventory;
+    private ArrayList<Product> activeProducts;
+    private ArrayList<Product> cartProducts = new ArrayList<>();
     private Map<Product, Integer> shoppingCart;
     private JTable cartTable;
-    private JLabel totalLabel;
 
     public void showSalesFrame() {
         mainFrame.setVisible(true); // Show the sales frame
@@ -44,6 +45,7 @@ public class PointOfSales {
     public PointOfSales(ArrayList<Product> inventory) {
         this.inventory = inventory;
         this.shoppingCart = new HashMap<>();
+        this.activeProducts = getActiveProducts(inventory);
         this.mainFrame = new JFrame("Sales");
         this.mainFrame.setSize(800, 600);
         this.mainFrame.setLayout(new BorderLayout());
@@ -87,18 +89,12 @@ public class PointOfSales {
     private JPanel createInventoryPanel() {
         JPanel inventoryPanel = new JPanel(new BorderLayout());
 
-        // Get the current date
-        Date currentDate = new Date();
-
-        // Filter active products
-        ArrayList<Product> activeProducts = getActiveProducts(inventory, currentDate);
-
         // Create a table model and set column names
         DefaultTableModel tableModel = new DefaultTableModel();
         tableModel.setColumnIdentifiers(new Object[]{"ID", "Name", "Category", "Stock", "Price", "Discount", "Status", "Selling Price"});
 
         // Populate the table model with active products
-        for (Product product : activeProducts) {
+        for (Product product : this.activeProducts) {
             double discountedPrice = product.getProductSellingPrice();
             Vector<Object> rowData = new Vector<>();
             rowData.add(product.getProductId());
@@ -106,7 +102,7 @@ public class PointOfSales {
             rowData.add(product.getProductCategory());
             rowData.add(product.getProductStock());
             rowData.add(product.getProductUsualPrice());
-            rowData.add(product.getProductDiscount());
+            rowData.add(Integer.toString(product.getProductDiscount()) + '%');
             rowData.add(product.getProductStatus());
             rowData.add(String.format("$%.2f", discountedPrice));
 
@@ -126,7 +122,7 @@ public class PointOfSales {
             // Check if a row is selected
             if (selectedRow != -1) {
                 // Get the selected Product from the table
-                Product selectedProduct = activeProducts.get(selectedRow);
+                Product selectedProduct = this.activeProducts.get(selectedRow);
 
                 // Call the addToCart method with the selected product
                 addToCart(selectedProduct);
@@ -190,11 +186,34 @@ public class PointOfSales {
         cartTable.getTableHeader().setForeground(Color.BLACK);
         cartTable.setBackground(new Color(252, 252, 252));
         cartTable.setGridColor(Color.DARK_GRAY);
-        cartTable.setSelectionBackground(new Color(0, 102, 0));
+        cartTable.setSelectionBackground(new Color(242, 160, 204));
         cartTable.setSelectionForeground(Color.DARK_GRAY);
 
         // Set font
         cartTable.setFont(new Font("Apple Casual", Font.PLAIN, 12));
+
+        // Add a button to remove items from the cart
+        JButton removeFromCartButton = new JButton("Remove Selected Item to Cart");
+        removeFromCartButton.addActionListener(e -> {
+            // Get the selected row index
+            int selectedRow = cartTable.getSelectedRow();
+
+            // Check if a row is selected
+            if (selectedRow != -1) {
+                // Get the selected Product from the table
+                Product selectedProduct = this.cartProducts.get(selectedRow);
+
+                // Call the addToCart method with the selected product
+                removeFromCart(selectedProduct);
+            } else {
+                JOptionPane.showMessageDialog(mainFrame, "Please select an item to remove from the cart.");
+            }
+        });
+
+        // Create the button panel and add the button to it
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(removeFromCartButton, BorderLayout.CENTER);
+        cartPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         return cartPanel;
     }
@@ -208,7 +227,7 @@ public class PointOfSales {
         }
 
         // Create a dialog to input the quantity
-        String quantityStr = JOptionPane.showInputDialog(mainFrame, "Enter quantity for " + product.getProductName() + ":", "Add to Cart", JOptionPane.PLAIN_MESSAGE);
+        String quantityStr = JOptionPane.showInputDialog(mainFrame, "Enter quantity:", "Add to Cart", JOptionPane.PLAIN_MESSAGE);
         if (quantityStr != null && !quantityStr.isEmpty()) {
             try {
                 int quantity = Integer.parseInt(quantityStr);
@@ -219,6 +238,7 @@ public class PointOfSales {
                     // Update the cart table directly
                     DefaultTableModel cartTableModel = (DefaultTableModel) cartTable.getModel();
                     cartTableModel.setRowCount(0);
+                    cartProducts.add(product);
                     updateCartTable();
 
                     // Refresh the cart panel
@@ -235,16 +255,60 @@ public class PointOfSales {
         }
     }
 
+    private void removeFromCart(Product product) {
+        // Create a dialog to input the quantity
+        String quantityStr = JOptionPane.showInputDialog(mainFrame, "Enter quantity:", "Remove from Cart", JOptionPane.PLAIN_MESSAGE);
+        if (quantityStr != null && !quantityStr.isEmpty()) {
+            try {
+                System.out.println(shoppingCart);
+                System.out.println(product);
+
+                int cartQuantity = shoppingCart.get(product);
+                int quantity = Integer.parseInt(quantityStr);
+
+                System.out.println("CQ");
+                System.out.println(cartQuantity);
+
+                if (quantity > 0 && quantity <= cartQuantity) {
+
+                    System.out.println(shoppingCart.get(product));
+
+                    shoppingCart.put(product, cartQuantity - quantity);
+
+                    System.out.println(shoppingCart.get(product));
+
+                    JOptionPane.showMessageDialog(mainFrame, "Product removed from cart: " + product.getProductName() + " (Quantity: " + quantity + ")");
+
+                    // Update the cart table directly
+                    DefaultTableModel cartTableModel = (DefaultTableModel) cartTable.getModel();
+                    cartTableModel.setRowCount(0);
+                    updateCartTable();
+
+                    // Refresh the cart panel
+                    mainFrame.revalidate();
+                    mainFrame.repaint();
+                } else if (quantity > cartQuantity) {
+                    JOptionPane.showMessageDialog(mainFrame, "Please remove at most " + cartQuantity, "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(mainFrame, "Quantity must be greater than zero", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(mainFrame, "Invalid quantity. Please enter a valid number", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
 
     private void updateCartTable() {
         DefaultTableModel cartTableModel = (DefaultTableModel) cartTable.getModel();
         cartTableModel.setRowCount(0);
 
-        double grandTotal = 0.0;
-
         for (Product product : shoppingCart.keySet()) {
             int quantity = shoppingCart.get(product);
             double subtotal = product.getProductSellingPrice() * quantity;
+
+            System.out.println(product.getProductId());
+            System.out.println(quantity);
 
             Vector<Object> rowData = new Vector<>();
             rowData.add(product.getProductId());
@@ -255,17 +319,10 @@ public class PointOfSales {
             rowData.add("Remove");
 
             cartTableModel.addRow(rowData);
-
-            grandTotal += subtotal;
         }
-
-        totalLabel.setText("Grand Total: $" + String.format("%.2f", grandTotal));
-
-        // Call the function to update the stock after checkout
-        updateStockAfterCheckout();
     }
 
-    private static ArrayList<Product> getActiveProducts(ArrayList<Product> products, Date currentDate) {
+    private static ArrayList<Product> getActiveProducts(ArrayList<Product> products) {
         ArrayList<Product> activeProducts = new ArrayList<>();
         for (Product product : products) {
             // Check if the product is active and within the discount period

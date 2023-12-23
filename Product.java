@@ -73,8 +73,8 @@ class Product {
         return discountEndDate;
     }
 
-    public String getProductDiscount() {
-        return Integer.toString(productDiscount) + '%';
+    public Integer getProductDiscount() {
+        return productDiscount;
     }
 
     public String getProductStatus() {
