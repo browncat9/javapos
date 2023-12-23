@@ -227,7 +227,7 @@ public class PointOfSales {
         }
 
         // Create a dialog to input the quantity
-        String quantityStr = JOptionPane.showInputDialog(mainFrame, "Enter quantity:", "Add to Cart", JOptionPane.PLAIN_MESSAGE);
+        String quantityStr = JOptionPane.showInputDialog(mainFrame, "How many items to buy:", "Add to Cart", JOptionPane.PLAIN_MESSAGE);
         if (quantityStr != null && !quantityStr.isEmpty()) {
             try {
                 int quantity = Integer.parseInt(quantityStr);
