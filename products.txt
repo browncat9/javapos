@@ -1,7 +1,5 @@
-00001, Rice, Dry Food, 40, 12.00, 23-Dec-2023, 5, Active
-00002, Cooking Oil, Dry Food, 94, 5.00, 23-Dec-2023, 5, Active
-00003, Instant Noodles, Dry Food, 90, 2.50, 23-Dec-2023, 0, Active
-00004, Flour, Dry Food, 100, 5.00, 23-Apr-2023, 0, Inactive
-00005, Milk, Dairy, 39, 2.50, 23-Jan-2024, 5, Active
-00006, Prawn Crackers, Dry Food, 77, 5.99, 23-Dec-2023, 0, Active
-00007, Prawn Crackers, Dry Food, 100, 5.99, 23-Dec-2023, 10, Inactive
+00001, Ooreo, Dry Food, 100, 6.00, 23-Dec-2023, 0, Active
+00002, Chips, Dry Food, 200, 3.00, 23-Dec-2023, 10, Active
+00003, Cheese, Dairy, 80, 7.50, 23-Dec-2023, 0, Active
+00004, Noodles, Dry Food, 40, 2.00, 23-Apr-2023, 0, Inactive
+00005, Noodles, Dry Food, 60, 2.00, 23-Jan-2024, 20, Active
